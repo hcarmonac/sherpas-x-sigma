@@ -6,6 +6,10 @@
 
 **Sherpas x UPV Sigma Data Club hackathon, 12 to 19 November 2026**
 
+## Senda
+
+Prototipo centrado en preparar una decisión del plan, acordar un paso y retomarlo con un recordatorio. Para ejecutarlo desde la raíz del repositorio, usad `node senda/server.mjs` con Node 22 o posterior. La [guía de implementación de Senda](senda/README.md) describe el código y el recorrido de prueba.
+
 ## Join the Discord first
 
 <a href="https://discord.gg/wVUZXmxdS"><img src="assets/discord-qr.png" alt="QR code: join the Discord" width="160" align="right"></a>
@@ -129,7 +133,7 @@ Each family folder contains the plan data, the family's persona and, where avail
 
 All amounts are US dollars. The JSON files contain the current plans for all four families. PDFs are included for Timothy and Melanie, Michael, and Daniel and Emily. Samantha's PDF is not included yet.
 
-Use the data from any language or framework. The only code included is a small voice example, [`examples/voice/`](examples/voice/). New to US finance? See [A few financial terms](#a-few-financial-terms).
+Use the data from any language or framework. The hackathon template includes a small voice example, [`examples/voice/`](examples/voice/). New to US finance? See [A few financial terms](#a-few-financial-terms).
 
 ## Your tools
 
