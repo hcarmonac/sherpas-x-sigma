@@ -36,8 +36,13 @@ test('consultas de los Weah, conversaciones aisladas, notas y llamada', { timeou
     }
     if (event.type === 'input_audio_buffer.append') {
       assert.equal(Buffer.from(event.audio, 'base64').length, 960);
+      const pcm = Buffer.alloc(960);
+      for (let i = 0; i < pcm.length / 2; i++) {
+        const frequency = i < 240 ? 1000 : 6000;
+        pcm.writeInt16LE(Math.round(8000 * Math.sin(2 * Math.PI * frequency * i / 24000)), i * 2);
+      }
       peer.send(JSON.stringify({ type: 'response.created' }));
-      peer.send(JSON.stringify({ type: 'response.output_audio.delta', delta: Buffer.alloc(960).toString('base64') }));
+      peer.send(JSON.stringify({ type: 'response.output_audio.delta', delta: pcm.toString('base64') }));
     }
     });
   });
@@ -147,7 +152,11 @@ test('consultas de los Weah, conversaciones aisladas, notas y llamada', { timeou
   socket.send(JSON.stringify({ event: 'media', streamSid: 'MZ-test', media: { payload: Buffer.alloc(160, 255).toString('base64') } }));
   const output = JSON.parse((await heard)[0]);
   assert.equal(output.streamSid, 'MZ-test');
-  assert.equal(Buffer.from(output.media.payload, 'base64').length, 160);
+  const audio = Buffer.from(output.media.payload, 'base64');
+  assert.equal(audio.length, 160);
+  const loudnessCode = (byte) => (255 - byte) & 127;
+  assert.ok(audio.subarray(12, 80).some((byte) => loudnessCode(byte) > 70), 'conserva el tono de 1 kHz');
+  assert.ok(audio.subarray(92).every((byte) => loudnessCode(byte) < 8), 'evita el alias audible del tono de 6 kHz');
   socket.send(JSON.stringify({ event: 'stop' }));
   await once(socket, 'close');
   await new Promise((done) => setTimeout(done, 20));

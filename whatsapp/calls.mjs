@@ -16,6 +16,16 @@ function encodeMuLaw(sample) {
 const readyTone = Buffer.from(Array.from({ length: 1600 }, (_, i) =>
   encodeMuLaw(2000 * Math.sin(2 * Math.PI * 660 * i / 8000)))).toString('base64');
 
+// Filter frequencies above the telephone band before reducing PCM from 24 kHz to 8 kHz.
+const lowPass = Array.from({ length: 31 }, (_, i) => {
+  const offset = i - 15;
+  const cutoff = 3400 / 24000;
+  const sinc = offset === 0 ? 2 * cutoff : Math.sin(2 * Math.PI * cutoff * offset) / (Math.PI * offset);
+  return sinc * (0.54 - 0.46 * Math.cos(2 * Math.PI * i / 30));
+});
+const filterGain = lowPass.reduce((sum, coefficient) => sum + coefficient, 0);
+const silentHistory = Buffer.alloc((lowPass.length - 1) * 2);
+
 function inputPcm(base64) {
   const input = Buffer.from(base64, 'base64');
   const pcm = Buffer.alloc(input.length * 6);
@@ -39,7 +49,7 @@ export function addCalls(server, { valid, takeTicket, ai }) {
 
   streams.on('connection', (peer) => {
     let upstream, streamSid, ready = false, accepting = true;
-    let remainder = Buffer.alloc(0);
+    let outputHistory = silentHistory;
     const startTimeout = setTimeout(() => peer.close(), 20_000);
     const endTimeout = setTimeout(() => peer.close(), 180_000);
     const send = (socket, data) => {
@@ -113,24 +123,27 @@ export function addCalls(server, { valid, takeTicket, ai }) {
               break;
             case 'input_audio_buffer.speech_started':
               accepting = false;
-              remainder = Buffer.alloc(0);
+              outputHistory = silentHistory;
               send(peer, { event: 'clear', streamSid });
               break;
             case 'response.created':
               accepting = true;
-              remainder = Buffer.alloc(0);
+              outputHistory = silentHistory;
               break;
             case 'response.audio.delta':
             case 'response.output_audio.delta': {
               if (!accepting) break;
-              const pcm = Buffer.concat([remainder, Buffer.from(answer.delta, 'base64')]);
-              const audio = Buffer.alloc(Math.floor(pcm.length / 6));
+              const pcm = Buffer.concat([outputHistory, Buffer.from(answer.delta, 'base64')]);
+              const audio = Buffer.alloc(Math.floor((pcm.length - silentHistory.length) / 6));
               for (let i = 0; i < audio.length; i++) {
-                const offset = i * 6;
-                const sample = (pcm.readInt16LE(offset) + pcm.readInt16LE(offset + 2) + pcm.readInt16LE(offset + 4)) / 3;
-                audio[i] = encodeMuLaw(sample);
+                const offset = i * 6 + 4;
+                let sample = 0;
+                for (let tap = 0; tap < lowPass.length; tap++) {
+                  sample += lowPass[tap] * pcm.readInt16LE(offset + tap * 2);
+                }
+                audio[i] = encodeMuLaw(sample / filterGain);
               }
-              remainder = pcm.subarray(audio.length * 6);
+              outputHistory = pcm.subarray(audio.length * 6);
               if (audio.length) send(peer, { event: 'media', streamSid, media: { payload: audio.toString('base64') } });
               break;
             }
