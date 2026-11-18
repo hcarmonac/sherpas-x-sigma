@@ -1,5 +1,13 @@
 # Senda
 
+## Papel de la web en el MVP actual
+
+La web es el complemento visual del proyecto. Conservamos el mapa de la senda, la explicación de las medidas del plan, el progreso local y los recordatorios de calendario. **La prioridad actual y la propuesta de valor principal son las consultas personalizadas por WhatsApp**, implementadas en `../whatsapp/`. Antes de continuar el desarrollo, lee [el estado actual y el traspaso para otro Codex](../ESTADO_ACTUAL.md).
+
+El equipo considera que una web centrada únicamente en visualizar el plan se parece demasiado al Living Map existente de Sherpas. Por eso, la demo debe empezar por una duda real resuelta desde WhatsApp y utilizar esta web como apoyo. La web y WhatsApp todavía no sincronizan progreso, recordatorios ni conversaciones.
+
+## Qué implementa esta web
+
 Senda permite que una familia elija qué necesita comprobar para tomar una decisión de su plan, acuerde un paso y lo retome después. El enlace al plan de Sherpas lleva al Living Map y al resto del plan original. Dentro de Senda, la comparación usa la puntuación actual y las medidas que Sherpas ya calculó en el caso.
 
 El prototipo usa los casos sintéticos de **Timothy y Melanie Weah** y **Samantha Lewis**. El estado se guarda por caso en el navegador. El selector de los Weah permite ensayar dos perspectivas en el mismo dispositivo.
@@ -14,7 +22,9 @@ node senda/server.mjs
 
 Abrid <http://127.0.0.1:5173>. El recorrido usa los datos locales. Si estáis usando el `.env` del equipo, instalad las dependencias de voz como indica el paso 6.
 
-## Orden de implementación
+## Archivos y recorrido implementados
+
+Los archivos descritos a continuación ya existen. Este apartado conserva la explicación de su construcción y de cómo comprobarlos.
 
 ### 1. Servir la web y preparar los casos
 
@@ -78,7 +88,7 @@ Para añadir otro caso, escribid una función como `buildSamantha()` y registrad
 
 ### 6. Activar la ayuda conversacional
 
-Las respuestas escritas salen del paso mostrado y de `plan.questions`. Para la voz opcional, [voice-server.mjs](voice-server.mjs) valida el caso, escenario y acción y monta el contexto antes de abrir el WebSocket al proxy. [public/voice.mjs](public/voice.mjs) captura y reproduce el audio con el [worklet del ejemplo de Sherpas](../examples/voice/public/mic-worklet.js).
+Las respuestas escritas salen del paso mostrado y de `plan.questions`. Para la voz opcional, [voice-server.mjs](voice-server.mjs) valida el caso, escenario y acción y monta el contexto antes de abrir el WebSocket al proxy. La llamada usa `gemini-3.8-live` con audio PCM16 a 24 kHz y configura la sesión al recibir `session.created`. [public/voice.mjs](public/voice.mjs) captura y reproduce el audio con el [worklet del ejemplo de Sherpas](../examples/voice/public/mic-worklet.js).
 
 Con una clave vigente en el `.env` de la raíz, detened el servidor anterior y ejecutad estos comandos.
 

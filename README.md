@@ -8,7 +8,16 @@
 
 ## Senda
 
-Prototipo centrado en preparar una decisión del plan, acordar un paso y retomarlo con un recordatorio. Para ejecutarlo desde la raíz del repositorio, usad `node senda/server.mjs` con Node 22 o posterior. La [guía de implementación de Senda](senda/README.md) describe el código y el recorrido de prueba.
+**La propuesta de valor principal de Senda es poder resolver por WhatsApp las dudas sobre tu propio plan financiero, en el momento en que aparecen.** El MVP conecta Twilio con los modelos de Sherpas y con los documentos del caso de Timothy y Melanie Weah. Los clientes pueden preguntar por texto o notas de voz y reciben respuestas personalizadas en inglés estadounidense. También se ha implementado un canal de llamada telefónica con Gemini Live.
+
+La web se conserva como complemento para visualizar el plan, entender el efecto de las medidas documentadas y crear recordatorios de calendario. La prioridad del equipo es demostrar la utilidad y fiabilidad de la conversación por WhatsApp. El Living Map y el chat del propio plan de Sherpas ya cubren parte de la experiencia visual y conversacional dentro de su producto.
+
+**Para el siguiente Codex o compañero, leer primero [ESTADO_ACTUAL.md](ESTADO_ACTUAL.md).** Explica las decisiones del equipo, el estado verificado de cada canal, las limitaciones, los archivos importantes y el orden recomendado para continuar. Incluye una incidencia operativa del túnel público detectada el 18 de noviembre que hay que resolver antes de la siguiente demo externa.
+
+- [Guía de WhatsApp y teléfono](whatsapp/README.md) — configuración, ejecución y pruebas del canal principal.
+- [Guía de la web](senda/README.md) — recorrido visual, calendario y ayuda de voz del navegador.
+
+El resto de este README conserva las instrucciones, los casos y los criterios originales del hackathon.
 
 ## Join the Discord first
 

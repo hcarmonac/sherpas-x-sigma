@@ -46,18 +46,6 @@ function startRelay(browser, proxy, instructions) {
   });
   browser.on('error', () => browser.close());
 
-  upstream.on('open', () => upstream.send(JSON.stringify({
-    type: 'session.update',
-    session: {
-      type: 'realtime',
-      instructions,
-      audio: {
-        input: { format: { type: 'audio/pcm', rate: 24000 }, turn_detection: { type: 'server_vad' } },
-        output: { format: { type: 'audio/pcm', rate: 24000 }, voice: 'marin' },
-      },
-    },
-  })));
-
   upstream.on('message', (data) => {
     let event;
     try {
@@ -67,6 +55,19 @@ function startRelay(browser, proxy, instructions) {
     }
 
     switch (event.type) {
+      case 'session.created':
+        upstream.send(JSON.stringify({
+          type: 'session.update',
+          session: {
+            type: 'realtime',
+            instructions,
+            audio: {
+              input: { format: { type: 'audio/pcm', rate: 24000 }, turn_detection: { type: 'server_vad' } },
+              output: { format: { type: 'audio/pcm', rate: 24000 } },
+            },
+          },
+        }));
+        break;
       case 'session.updated':
         clearTimeout(readyTimeout);
         ready = true;
@@ -86,7 +87,7 @@ function startRelay(browser, proxy, instructions) {
         break;
       case 'error':
         fail(event.error?.code === 'expired_secret_key'
-          ? 'La clave de Sherpas ha caducado. Puedes consultar las respuestas escritas mientras el equipo la renueva.'
+          ? 'El proveedor de voz ha rechazado la conexión por una credencial caducada. Puedes consultar las respuestas escritas.'
           : 'El proxy no pudo responder. Puedes consultar las respuestas escritas.');
         break;
     }
@@ -112,7 +113,7 @@ export function addVoice(server, cases) {
   const proxy = new URL(process.env.LLM_PROXY_URL || 'https://llm-hackathon.sherpaswealth.com');
   proxy.protocol = proxy.protocol === 'http:' ? 'ws:' : 'wss:';
   proxy.pathname = '/v1/realtime';
-  proxy.search = '?model=gpt-realtime-2.1-mini';
+  proxy.search = '?model=gemini-3.8-live';
 
   const voice = new WebSocketServer({ noServer: true, maxPayload: 1_280 });
   server.on('upgrade', (req, socket, head) => {
